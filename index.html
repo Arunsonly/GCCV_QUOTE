@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GCCV Other Than 3 Wheeler - Premium Calculator</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="site-header">
+      <h1>GCCV Other Than 3 Wheeler - Premium Calculator</h1>
+    </header>
+
+    <main class="container">
+      <nav class="tabs">
+        <button class="tab-btn active" data-tab="tab-input">Input Field</button>
+        <button class="tab-btn" data-tab="tab-selection">Selection Field</button>
+        <button class="tab-btn" data-tab="tab-addons">Add On Coverage</button>
+        <button class="tab-btn" data-tab="tab-discount">Discount</button>
+      </nav>
+
+      <section id="tab-input" class="tab active">
+        <form id="form-input" onsubmit="return false;">
+          <div class="form-grid">
+
+            <div class="card">
+              <h3>Vehicle Dates & Zone</h3>
+              <label>Date of Registration (DOR)
+                <input type="date" id="dor" />
+              </label>
+
+              <label>Renewal Date (optional)
+                <input type="date" id="renewal" />
+              </label>
+
+              <label>Zone
+                <select id="zone">
+                  <option value="A">Zone A (Chennai, Delhi/New Delhi, Kolkata, Mumbai)</option>
+                  <option value="B">Zone B (Other state capitals)</option>
+                  <option value="C">Zone C (Rest of India)</option>
+                </select>
+              </label>
+
+              <label>Gross Vehicle Weight (GVW) (kg)
+                <input type="number" id="gvw" value="0" min="0" />
+              </label>
+
+              <label>Seating Capacity as per RC
+                <input type="number" id="seating" value="0" min="0" />
+              </label>
+
+              <label>Trailer?
+                <div class="inline">
+                  <label><input type="radio" name="trailer" value="no" checked> No</label>
+                  <label><input type="radio" name="trailer" value="yes"> Yes</label>
+                </div>
+              </label>
+
+              <div id="agri-wrap" class="conditional" style="display:none;">
+                <label>Agriculture Usage?
+                  <div class="inline">
+                    <label><input type="radio" name="agri" value="no" checked> No</label>
+                    <label><input type="radio" name="agri" value="yes"> Yes</label>
+                  </div>
+                </label>
+              </div>
+
+            </div>
+
+            <div class="card">
+              <h3>Sum Insured (Dynamic)</h3>
+
+              <div id="sum-insured-container" class="sum-insured">
+                <!-- Rows injected by JS -->
+              </div>
+
+              <div class="si-help">
+                <div class="si-box">
+                  <div><strong>IDV of Vehicles</strong></div>
+                  <div class="si-action">
+                    <button type="button" id="si-add-first" class="btn small">+ Insert Value</button>
+                  </div>
+                </div>
+                <small class="muted">Add additional sum-insured categories. Duplicate categories are prevented.</small>
+              </div>
+
+              <label>
+                <input type="checkbox" id="cng-checkbox"> CNG
+              </label>
+
+              <div id="cng-options" class="conditional" style="display:none;">
+                <label><input type="radio" name="cng-type" value="inbuilt" checked> Inbuilt</label>
+                <label><input type="radio" name="cng-type" value="extra"> Extra Fitted</label>
+
+                <div id="cng-value-wrap" style="display:none;margin-top:.5rem;">
+                  <label>Value of CNG Kit
+                    <input type="number" id="cng-value" value="0" />
+                  </label>
+                </div>
+              </div>
+
+              <label><input type="checkbox" id="fleet-owner"> Fleet Owner</label>
+
+              <div class="claim-ncb">
+                <label>Claim in Previous Policy
+                  <div class="inline">
+                    <label><input type="radio" name="claimPrev" value="no" checked> No</label>
+                    <label><input type="radio" name="claimPrev" value="yes"> Yes</label>
+                  </div>
+                </label>
+
+                <label>NCB
+                  <select id="ncb">
+                    <option value="">Select</option>
+                    <option value="name_transferred">Name Transferred</option>
+                    <option value="0">0%</option>
+                    <option value="20">20%</option>
+                    <option value="25">25%</option>
+                    <option value="35">35%</option>
+                    <option value="45">45%</option>
+                    <option value="50">50%</option>
+                  </select>
+                </label>
+              </div>
+
+            </div>
+
+          </div>
+
+          <div class="actions">
+            <div></div>
+            <div>
+              <button type="button" class="btn next" data-next="tab-selection">Next →</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section id="tab-selection" class="tab">
+        <form id="form-selection" onsubmit="return false;">
+          <div class="form-grid">
+            <div class="card">
+              <h3>Selection Field</h3>
+              <label><input type="checkbox" id="imt23"> IMT-23</label>
+              <label><input type="checkbox" id="nil-dep"> Nil Depreciation</label>
+
+              <label><input type="checkbox" id="towing"> Towing Charge</label>
+              <div id="towing-sum" style="display:none;margin-top:.4rem;">
+                <label>Towing Sum Insured
+                  <input type="number" id="towing-value" value="0" />
+                </label>
+              </div>
+
+              <label>Return To Invoice
+                <select id="rti">
+                  <option value="no" selected>No</option>
+                  <option value="yes">Yes</option>
+                </select>
+              </label>
+
+              <label>Geographic Area Coverage
+                <select id="geo">
+                  <option value="no" selected>No</option>
+                  <option value="yes">Yes</option>
+                </select>
+              </label>
+
+              <label>Consumable
+                <select id="consumable">
+                  <option value="no" selected>No</option>
+                  <option value="yes">Yes</option>
+                </select>
+              </label>
+
+              <label>EMI Protection
+                <select id="emi">
+                  <option value="no" selected>No</option>
+                  <option value="yes">Yes</option>
+                </select>
+              </label>
+
+              <div id="emi-options" style="display:none;">
+                <label>EMI Sum Insured
+                  <input type="number" id="emi-value" value="0" />
+                </label>
+                <label>Months
+                  <select id="emi-months">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                  </select>
+                </label>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="actions">
+            <div>
+              <button type="button" class="btn back" data-prev="tab-input">← Back</button>
+            </div>
+            <div>
+              <button type="button" class="btn next" data-next="tab-addons">Next →</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section id="tab-addons" class="tab">
+        <form id="form-addons" onsubmit="return false;">
+          <div class="form-grid">
+
+            <div class="card">
+              <h3>Add On Coverage</h3>
+              <label><input type="checkbox" id="pa-owner"> Compulsory PA Owner Driver</label>
+
+              <label><input type="checkbox" id="ll-employee"> LL Employee</label>
+              <div id="ll-emp-count" style="display:none;">
+                <label>Number of Employees
+                  <input type="number" id="ll-emp-number" min="0" value="0" />
+                </label>
+              </div>
+
+              <label><input type="checkbox" id="ll-paid"> LL Paid Driver, Cleaner, Conductor</label>
+              <div id="ll-paid-counts" style="display:none;">
+                <label>Paid Drivers
+                  <input type="number" id="paid-driver-count" min="0" value="0" />
+                </label>
+                <label>Cleaners
+                  <input type="number" id="cleaner-count" min="0" value="0" />
+                </label>
+                <label>Conductors
+                  <input type="number" id="conductor-count" min="0" value="0" />
+                </label>
+              </div>
+
+              <label><input type="checkbox" id="pa-paid"> PA to Paid Driver</label>
+
+              <label><input type="checkbox" id="ll-nfpp-other"> LL TO NFPP (others than employees)</label>
+              <div id="ll-nfpp-other-count" style="display:none;">
+                <label>Count
+                  <input type="number" id="ll-nfpp-other-count-input" min="0" value="0" />
+                </label>
+              </div>
+
+              <label><input type="checkbox" id="ll-nfpp-incl"> LL TO NFPP (inclusive employees)</label>
+              <div id="ll-nfpp-incl-count" style="display:none;">
+                <label>Count
+                  <input type="number" id="ll-nfpp-incl-count-input" min="0" value="0" />
+                </label>
+              </div>
+
+            </div>
+
+          </div>
+
+          <div class="actions">
+            <div>
+              <button type="button" class="btn back" data-prev="tab-selection">← Back</button>
+            </div>
+            <div>
+              <button type="button" class="btn next" data-next="tab-discount">Next →</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section id="tab-discount" class="tab">
+        <form id="form-discount" onsubmit="return false;">
+          <div class="form-grid">
+
+            <div class="card">
+              <h3>Discounts & Finalize</h3>
+
+              <label>Nil Dep Discount (%) <input type="number" id="nil-dep-disc" value="0" min="0" max="20" /></label>
+
+              <label>Anti Theft Discount
+                <select id="anti-theft">
+                  <option value="no">No</option>
+                  <option value="yes">Yes</option>
+                </select>
+              </label>
+
+              <label>NCB Discount
+                <select id="ncb-discount">
+                  <option value="0">0%</option>
+                  <option value="20">20%</option>
+                  <option value="25">25%</option>
+                  <option value="35">35%</option>
+                  <option value="45">45%</option>
+                  <option value="50">50%</option>
+                </select>
+              </label>
+
+              <label>Nil Dep Renewal Discount
+                <select id="nil-renewal">
+                  <option value="no">No</option>
+                  <option value="yes">Yes</option>
+                </select>
+              </label>
+
+              <label>U/W Discount (%
+) <input type="number" id="uw-discount" value="0" min="0" /></label>
+
+            </div>
+
+          </div>
+
+          <div class="actions">
+            <div>
+              <button type="button" class="btn back" data-prev="tab-addons">← Back</button>
+            </div>
+            <div>
+              <button type="button" class="btn primary" id="calculate">Calculate Premium</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section id="tab-result" class="tab result" style="display:none;">
+        <div class="result-grid">
+          <div class="card wide">
+            <h3>Premium Computation Sheet</h3>
+            <div id="breakdown"></div>
+            <div class="totals">
+              <div id="totals-summary"></div>
+            </div>
+            <div class="result-actions">
+              <button class="btn back" data-prev="tab-discount">← Back</button>
+              <button class="btn" id="btn-print">Print</button>
+              <button class="btn" id="btn-share">Share</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div id="popup" class="popup" style="display:none;">
+    <div class="popup-content">
+      <h3>Share / Print Details (optional)</h3>
+      <label>Insured Name <input type="text" id="pop-insured" /></label>
+      <label>Previous Policy No. <input type="text" id="pop-prev" /></label>
+      <label>Vehicle Regn. No. <input type="text" id="pop-reg" /></label>
+      <div class="popup-actions">
+        <button class="btn" id="popup-skip">Skip</button>
+        <button class="btn primary" id="popup-submit">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
