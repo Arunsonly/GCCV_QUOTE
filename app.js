@@ -619,7 +619,7 @@ let totalOD = Object.values(odComponents).reduce((s,v)=>s+v,0);
 
   // GST and totals
   const odGst = 0.18 * totalOD;
-  const tpGstBasic = 0.12 * tpBase;
+  const tpGstBasic = 0.05 * tpBase;
   const tpGstAddons = 0.18 * totalLiabilityAddons;
   const tpGst = tpGstBasic + tpGstAddons;
   const gstTotal = odGst + tpGst;
