@@ -273,12 +273,7 @@ function initAddOnToggles(){
   qs('#ll-paid').addEventListener('change', e => {
     qs('#ll-paid-counts').style.display = e.target.checked ? '' : 'none';
   });
-  
-qs('#pa-paid').addEventListener('change', e => {
-  qs('#pa-paid-counts').style.display =
-    e.target.checked ? '' : 'none';
-});
-  
+
   qs('#ll-nfpp-other').addEventListener('change', e => {
     qs('#ll-nfpp-other-count').style.display = e.target.checked ? '' : 'none';
   });
@@ -394,11 +389,6 @@ function gatherInputs(){
     cleanerCount: Number(qs('#cleaner-count').value||0),
     conductorCount: Number(qs('#conductor-count').value||0),
     paPaid: qs('#pa-paid').checked,
-
-    paPaidDriverCount: Number(qs('#pa-paid-driver-count').value || 0),
-paCleanerCount: Number(qs('#pa-cleaner-count').value || 0),
-paConductorCount: Number(qs('#pa-conductor-count').value || 0),
-    
     llNfppOther: qs('#ll-nfpp-other').checked,
     llNfppOtherCount: Number(qs('#ll-nfpp-other-count-input').value||0),
     llNfppIncl: qs('#ll-nfpp-incl').checked,
@@ -600,7 +590,7 @@ let totalOD = Object.values(odComponents).reduce((s,v)=>s+v,0);
 
   
 
-  // // ---------------- Liability (TP) Side ----------------
+  //   // ---------------- Liability (TP) Side ----------------
   let tpBase = 0;
   if (d.gvw <= 7500) tpBase = 16049;
   else if (d.gvw <= 12000) tpBase = 27186;
@@ -611,13 +601,7 @@ let totalOD = Object.values(odComponents).reduce((s,v)=>s+v,0);
   let paOwner = d.paOwner ? 320 : 0;
   let llEmployee = d.llEmployee ? (50 * d.llEmployeeCount) : 0;
   let llPaidSum = d.llPaid ? (50 * (d.paidDriverCount + d.cleanerCount + d.conductorCount)) : 0;
-  let paPaid = d.paPaid
-  ? 60 * (
-      d.paPaidDriverCount +
-      d.paCleanerCount +
-      d.paConductorCount
-    )
-  : 0;
+  let paPaid = d.paPaid ? 60 : 0;
   let llNfppOther = d.llNfppOther ? (75 * d.llNfppOtherCount) : 0;
   let llNfppIncl = d.llNfppIncl ? (75 * d.llNfppInclCount) : 0;
   let llGeo = d.geo ? 100 : 0;
