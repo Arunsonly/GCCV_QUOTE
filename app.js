@@ -149,7 +149,7 @@ function addSiRow({selected=null, amount=0} = {}){
   row.innerHTML = `
     <select class="si-select">${buildOptionsHTML(selValue)}</select>
     <input type="number" min="0" value="${amount}" class="si-amount" />
-    <button type="button" class="btn si-add">${isFirst ? '+' : '✕'}</button>
+    <button type="button" class="btn si-add">${isFirst ? '+' : 'âœ•'}</button>
   `;
   container.appendChild(row);
   refreshSiSelects();
@@ -203,7 +203,7 @@ function refreshSiSelects(){
   rows.forEach((r, idx) => {
     const btn = r.querySelector('.si-add');
     if (idx === 0) btn.textContent = '+';
-    else btn.textContent = '✕';
+    else btn.textContent = 'âœ•';
   });
 
   updateSiAddButtonState();
@@ -273,7 +273,12 @@ function initAddOnToggles(){
   qs('#ll-paid').addEventListener('change', e => {
     qs('#ll-paid-counts').style.display = e.target.checked ? '' : 'none';
   });
-
+  
+qs('#pa-paid').addEventListener('change', e => {
+  qs('#pa-paid-counts').style.display =
+    e.target.checked ? '' : 'none';
+});
+  
   qs('#ll-nfpp-other').addEventListener('change', e => {
     qs('#ll-nfpp-other-count').style.display = e.target.checked ? '' : 'none';
   });
@@ -389,6 +394,11 @@ function gatherInputs(){
     cleanerCount: Number(qs('#cleaner-count').value||0),
     conductorCount: Number(qs('#conductor-count').value||0),
     paPaid: qs('#pa-paid').checked,
+
+    paPaidDriverCount: Number(qs('#pa-paid-driver-count').value || 0),
+paCleanerCount: Number(qs('#pa-cleaner-count').value || 0),
+paConductorCount: Number(qs('#pa-conductor-count').value || 0),
+    
     llNfppOther: qs('#ll-nfpp-other').checked,
     llNfppOtherCount: Number(qs('#ll-nfpp-other-count-input').value||0),
     llNfppIncl: qs('#ll-nfpp-incl').checked,
@@ -550,7 +560,7 @@ function computePremium(d){
   // - Nil Dep Renewal Discount = Nil Depreciation Premium * 0.05 (if user selected renewal)
   const nilDepRenewalDiscount = d.nilRenewal ? (0.05 * nilDepPremium) : 0;
 
-  // NCB Discount = NCB Rate ×
+  // NCB Discount = NCB Rate Ã—
   // (Basic OD premium + Electric Accessories premium + GVW Loading premium + CNG Extra premium + Geo Premium + IMT-23 Premium + Towing charge premium + Nil Depr. premium
   // - Anti Theft Discount - Nil Dep Renewal Discount - Nil Dep Discount - U/W Discount)
   let ncbDiscountAmount = 0;
@@ -590,7 +600,239 @@ let totalOD = Object.values(odComponents).reduce((s,v)=>s+v,0);
 
   
 
-  // ---------------- Liability (TP) Side ----------------
+  // // ---------------- Liability (TP) Side ----------------
   let tpBase = 0;
   if (d.gvw <= 7500) tpBase = 16049;
-  else if (d.gvw <= 12000) tpBase = 2
+  else if (d.gvw <= 12000) tpBase = 27186;
+  else if (d.gvw <= 20000) tpBase = 35313;
+  else if (d.gvw <= 40000) tpBase = 43950;
+  else tpBase = 44242;
+
+  let paOwner = d.paOwner ? 320 : 0;
+  let llEmployee = d.llEmployee ? (50 * d.llEmployeeCount) : 0;
+  let llPaidSum = d.llPaid ? (50 * (d.paidDriverCount + d.cleanerCount + d.conductorCount)) : 0;
+  let paPaid = d.paPaid
+  ? 60 * (
+      d.paPaidDriverCount +
+      d.paCleanerCount +
+      d.paConductorCount
+    )
+  : 0;
+  let llNfppOther = d.llNfppOther ? (75 * d.llNfppOtherCount) : 0;
+  let llNfppIncl = d.llNfppIncl ? (75 * d.llNfppInclCount) : 0;
+  let llGeo = d.geo ? 100 : 0;
+  let cngTp = d.cngChecked ? 60 : 0;
+  let trailerTp = 0;
+  if (d.trailer){
+    trailerTp = d.agriculture ? 910 : 2485;
+  }
+
+  const liabilityAddons = {
+    paOwner, llEmployee, llPaidSum, paPaid, llNfppOther, llNfppIncl, llGeo, cngTp, trailerTp
+  };
+  const totalLiabilityAddons = Object.values(liabilityAddons).reduce((a,b)=>a+b,0);
+  const totalLiability = tpBase + totalLiabilityAddons;
+
+  // GST and totals
+  const odGst = 0.18 * totalOD;
+  const tpGstBasic = 0.05 * tpBase;
+  const tpGstAddons = 0.18 * totalLiabilityAddons;
+  const tpGst = tpGstBasic + tpGstAddons;
+  const gstTotal = odGst + tpGst;
+  const grandTotal = totalOD + totalLiability + gstTotal;
+
+  // return structured result including discount lines for rendering
+  const out = {
+    inputs: d,
+    breakdown: {
+      od: odComponents,
+      totalOD,
+      liability: {
+        tpBase,
+        liabilityAddons,
+        totalLiabilityAddons,
+        totalLiability
+      },
+      taxes: {
+        gstTotal
+      },
+      grandTotal,
+      ncbDiscountBasis
+    }
+  };
+  return out;
+}
+
+function renderResult(res){
+  const bre = qs('#breakdown');
+  bre.innerHTML = '';
+
+  const odComp = res.breakdown.od;
+  const odDiv = document.createElement('div');
+  odDiv.className = 'breakline';
+  odDiv.innerHTML = `<h4>Own Damage (OD) Premium</h4>`;
+
+  const odList = [
+    ['Basic OD', odComp.basicOD],
+    ['GVW Loading', odComp.gvwLoading],
+    ['Electric Accessories', odComp.electricPremium],
+    ['CNG Extra', odComp.cngExtraPremium],
+    ['IMT-23', odComp.imt23Premium],
+    ['Towing Charge', odComp.towingPremium],
+    ['Geographic Area', odComp.geoPremium],
+    ['Return to Invoice', odComp.rtiPremium],
+    ['Consumable', odComp.consumablePremium],
+    ['Nil Depreciation (Raw)', odComp.nilDepPremium],
+    ['EMI Protection', odComp.emiPremium],
+    ['Trailer OD', odComp.trailerODPremium],
+    ['Inbuilt CNG OD', odComp.inbuiltCngOdPremium]
+  ];
+
+ // zero à¤µà¤¾à¤²à¥‡ à¤ªà¥à¤°à¥€à¤®à¤¿à¤¯à¤® à¤¹à¤Ÿà¤¾ à¤¦à¥‹
+  const filteredOdList = odList.filter(([_, amount]) => amount > 0);
+
+  // à¤¸à¤¿à¤°à¥à¤«à¤µà¥‡ à¤µà¤¾à¤²à¥€ à¤à¤‚à¤Ÿà¥à¤°à¥€à¤œà¤¼ à¤°à¥‡à¤‚à¤¡à¤° à¤•à¤°à¥‹
+  filteredOdList.forEach(([label, amount]) => {
+    const el = document.createElement('div');
+    el.className = 'line-item';
+    el.innerHTML = `<div>${label}</div><div>${ruppee(amount)}</div>`;
+    odDiv.appendChild(el);
+  });
+
+  // Anti theft discount (line-item, always show if >0)
+  // 1) à¤¸à¤¾à¤°à¥€ discount lines à¤à¤• list à¤®à¥‡à¤‚
+const discountList = [
+  ['Anti Theft Discount',        -odComp.antiTheftDiscount],
+  ['Nil Dep Discount',           -odComp.nilDepDiscountAmount],
+  ['Nil Dep Renewal Discount',   -odComp.nilDepRenewalDiscount],
+  ['U/W Discount',               -odComp.uwDiscountAmount]
+];
+
+// 2) zero-value à¤¹à¤Ÿà¤¾à¤“
+const filteredDiscounts = discountList.filter(([_, amt]) => amt !== 0);
+
+// 3) à¤¬à¤šà¥€ à¤¹à¥à¤ˆ à¤°à¥‡à¤‚à¤¡à¤° à¤•à¤°à¥‹
+filteredDiscounts.forEach(([label, amt]) => {
+  odDiv.appendChild(buildLine(label, amt));
+});
+
+
+  // NCB Discount line item, with tooltip for basis
+  const ncbDiscLine = document.createElement('div');
+  ncbDiscLine.className = 'line-item';
+  ncbDiscLine.innerHTML = `<div>NCB Discount <span class="muted" title="Basis: ${ruppee(res.breakdown.ncbDiscountBasis)}">â“˜</span></div><div>- ${ruppee(odComp.ncbDiscountAmount)}</div>`;
+  odDiv.appendChild(ncbDiscLine);
+
+  const odTotalDiv = document.createElement('div');
+  odTotalDiv.className = 'line-item';
+  odTotalDiv.style.fontWeight = '700';
+  odTotalDiv.innerHTML = `<div>Total OD</div><div>${ruppee(res.breakdown.totalOD)}</div>`;
+  odDiv.appendChild(odTotalDiv);
+
+  // Liability / TP column
+  const liDiv = document.createElement('div');
+  liDiv.className = 'breakline';
+  liDiv.innerHTML = `<h4>Liability / TP Premium</h4>`;
+
+liDiv.appendChild(buildLine('Basic TP', res.breakdown.liability.tpBase));
+
+// 1) à¤¸à¤­à¥€ TP add-ons list à¤¬à¤¨à¤¾à¤“
+const tpAddons = Object.entries(res.breakdown.liability.liabilityAddons);
+
+// 2) zero-value à¤¹à¤Ÿà¤¾à¤“
+const filteredTpAddons = tpAddons.filter(([_, amount]) => amount > 0);
+
+// 3) à¤¬à¤šà¥€ à¤¹à¥à¤ˆ à¤°à¥‡à¤‚à¤¡à¤° à¤•à¤°à¥‹
+filteredTpAddons.forEach(([key, amount]) => {
+  const name = key
+    .replace(/([A-Z])/g,' $1')
+    .replace(/^./, s=>s.toUpperCase());
+  liDiv.appendChild(buildLine(name, amount));
+});
+
+liDiv.appendChild(buildLine('Total Liability', res.breakdown.liability.totalLiability));
+
+
+  // GST (single line only, as required)
+  const taxDiv = document.createElement('div');
+  taxDiv.className = 'breakline';
+  taxDiv.innerHTML = `<h4>Taxes</h4>`;
+  taxDiv.appendChild(buildLine('GST (OD + TP)', res.breakdown.taxes.gstTotal));
+
+  // Summary
+  const summaryDiv = document.createElement('div');
+  summaryDiv.className = 'breakline';
+  summaryDiv.innerHTML = `<h4>Summary</h4>`;
+  summaryDiv.appendChild(buildLine('Total OD', res.breakdown.totalOD));
+  summaryDiv.appendChild(buildLine('Total Liability', res.breakdown.liability.totalLiability));
+  const totalPremium = res.breakdown.totalOD + res.breakdown.liability.totalLiability;
+  summaryDiv.appendChild(buildLine('Total Premium (OD + Liability)', totalPremium));
+  summaryDiv.appendChild(buildLine('GST', res.breakdown.taxes.gstTotal));
+  summaryDiv.appendChild(buildLine('Grand Total', res.breakdown.grandTotal));
+
+  bre.appendChild(odDiv);
+  bre.appendChild(liDiv);
+  bre.appendChild(taxDiv);
+  bre.appendChild(summaryDiv);
+
+  const tsum = qs('#totals-summary');
+  tsum.innerHTML = `<div class="line-item"><div style="font-weight:700">Grand Total</div><div style="font-weight:700">${ruppee(res.breakdown.grandTotal)}</div></div>`;
+}
+
+function buildLine(label, amount){
+  const el = document.createElement('div');
+  el.className = 'line-item';
+  const sign = amount < 0 ? '-' : '';
+  const abs = Math.abs(amount);
+  el.innerHTML = `<div>${label}</div><div>${sign} ${ruppee(abs)}</div>`;
+  return el;
+}
+
+// ---------------------------- Print & Share (updated) ----------------------------
+function bindPrintShare(){
+  qs('#btn-print').addEventListener('click', () => openPopup());
+  qs('#btn-share').addEventListener('click', () => openPopup());
+  qs('#popup-skip').addEventListener('click', () => closePopup());
+  qs('#popup-submit').addEventListener('click', () => {
+    closePopup();
+    showPrintHeaderFields();
+    window.print();
+    hidePrintHeaderFields();
+  });
+}
+
+// Add header fields above breakdown for print/share
+function showPrintHeaderFields() {
+  let printHeader = document.getElementById('print-header');
+  if (!printHeader) {
+    printHeader = document.createElement('div');
+    printHeader.id = 'print-header';
+    printHeader.style = "margin-bottom:20px;border-bottom:2px solid #eee;padding-bottom:8px;";
+    printHeader.className = "popup-print-header";
+    // get popup fields
+    const insured = qs('#pop-insured') ? qs('#pop-insured').value : "";
+    const prev = qs('#pop-prev') ? qs('#pop-prev').value : "";
+    const reg = qs('#pop-reg') ? qs('#pop-reg').value : "";
+    const engine = qs('#pop-engine') ? qs('#pop-engine').value : "";
+    const chassis = qs('#pop-chassis') ? qs('#pop-chassis').value : "";
+    printHeader.innerHTML = `
+      <div style="font-size:1.05rem;font-weight:600">Policy Details</div>
+      <div>Insured Name: <b>${insured}</b></div>
+      <div>Previous Policy No.: <b>${prev}</b></div>
+      <div>Registration No.: <b>${reg}</b></div>
+      <div>Engine No.: <b>${engine}</b></div>
+      <div>Chassis No.: <b>${chassis}</b></div>
+      <div style="height:8px"></div>
+    `;
+    bre = qs('#breakdown');
+    bre.parentNode.insertBefore(printHeader, bre);
+  } else {
+    printHeader.style.display = '';
+  }
+}
+function hidePrintHeaderFields() {
+  let printHeader = document.getElementById('print-header');
+  if (printHeader) printHeader.style.display = 'none';
+}
+function openPopup(){ qs('#popup').style.display = ''; }
+function closePopup(){ qs('#popup').style.display = 'none'; }
