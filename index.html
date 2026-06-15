@@ -72,8 +72,7 @@
               <h3>Sum Insured (Dynamic)</h3>
 
               <div id="sum-insured-container" class="sum-insured">
-                <!-- Rows injected by JS -->
-              </div>
+                </div>
 
               <div class="si-help">
                 <div class="si-box">
@@ -234,7 +233,18 @@
                 </label>
               </div>
 
-              <label><input type="checkbox" id="pa-paid"> PA to Paid Driver</label>
+              <label><input type="checkbox" id="pa-paid"> PA to Paid Driver, Cleaner, Conductor</label>
+              <div id="pa-paid-counts" style="display:none;">
+                <label>Paid Drivers
+                  <input type="number" id="pa-paid-driver-count" min="0" value="0" />
+                </label>
+                <label>Cleaners
+                  <input type="number" id="pa-cleaner-count" min="0" value="0" />
+                </label>
+                <label>Conductors
+                  <input type="number" id="pa-conductor-count" min="0" value="0" />
+                </label>
+              </div>
 
               <label><input type="checkbox" id="ll-nfpp-other"> LL TO NFPP (others than employees)</label>
               <div id="ll-nfpp-other-count" style="display:none;">
@@ -299,8 +309,7 @@
                 </select>
               </label>
 
-              <label>U/W Discount (%
-) <input type="number" id="uw-discount" value="0" min="0" /></label>
+              <label>U/W Discount (%) <input type="number" id="uw-discount" value="0" min="0" /></label>
 
             </div>
 
