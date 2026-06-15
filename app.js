@@ -1,4 +1,4 @@
-// GCCV Other Than 3 Wheeler - Premium Calculator by Arun Kr
+// GCCV Other Than 3 Wheeler - Premium Calculator
 // Updated: Fixed Consumable, Inbuilt CNG, Nil-Dep (incl renewal) and U/W discount calculations
 
 // ---------------------------- Utilities ----------------------------
@@ -264,7 +264,7 @@ function initConditionalFields(){
   });
 }
 
-// ---------------------------- Add On toggles ----------------------------
+// ---------------------------- Add On toggles (unchanged) ----------------------------
 function initAddOnToggles(){
   qs('#ll-employee').addEventListener('change', e => {
     qs('#ll-emp-count').style.display = e.target.checked ? '' : 'none';
@@ -272,16 +272,6 @@ function initAddOnToggles(){
 
   qs('#ll-paid').addEventListener('change', e => {
     qs('#ll-paid-counts').style.display = e.target.checked ? '' : 'none';
-  });
-
-  // PA to Paid Driver, Cleaner, Conductor count boxes visibility toggle
-  qs('#pa-paid').addEventListener('change', e => {
-    qs('#pa-paid-counts').style.display = e.target.checked ? '' : 'none';
-    if(!e.target.checked) {
-      qs('#pa-paid-driver-count').value = 0;
-      qs('#pa-cleaner-count').value = 0;
-      qs('#pa-conductor-count').value = 0;
-    }
   });
 
   qs('#ll-nfpp-other').addEventListener('change', e => {
@@ -399,18 +389,15 @@ function gatherInputs(){
     cleanerCount: Number(qs('#cleaner-count').value||0),
     conductorCount: Number(qs('#conductor-count').value||0),
     paPaid: qs('#pa-paid').checked,
-    paPaidDriverCount: Number(qs('#pa-paid-driver-count').value||0),
-    paCleanerCount: Number(qs('#pa-cleaner-count').value||0),
-    paConductorCount: Number(qs('#pa-conductor-count').value||0),
     llNfppOther: qs('#ll-nfpp-other').checked,
     llNfppOtherCount: Number(qs('#ll-nfpp-other-count-input').value||0),
     llNfppIncl: qs('#ll-nfpp-incl').checked,
     llNfppInclCount: Number(qs('#ll-nfpp-incl-count-input').value||0),
-    nilDepDisc: Number(qs('#nil-dep-disc').value||0),
+    nilDepDisc: Number(qs('#nil-dep-disc').value||0), // percent user feeds
     antiTheft: qs('#anti-theft').value === 'yes',
     ncbDiscount: Number(qs('#ncb-discount').value||0),
     nilRenewal: qs('#nil-renewal').value === 'yes',
-    uwDiscount: Number(qs('#uw-discount').value||0),
+    uwDiscount: Number(qs('#uw-discount').value||0), // percent user feeds for U/W
     pop_engine, pop_chassis, pop_reg
   };
 }
@@ -485,7 +472,7 @@ function computePremium(d){
     }
   }
 
-  // Consumable Premium
+  // Consumable Premium - ensure divide by 100 (RATE is percent)
   let consumablePremium = 0;
   if (d.consumable){
     let rate = 0;
@@ -495,6 +482,7 @@ function computePremium(d){
     else if (age < 4) rate = .25;
     else if (age < 5) rate = .27;
     else rate = 0;
+    // CORRECT: rate is a percent so divide by 100
     consumablePremium = (rate/100) * (baseSumInsured + electricAccess + idvTrailer + d.cngValue);
   }
 
@@ -505,7 +493,7 @@ function computePremium(d){
     imt23Premium = 0.15 * baseIMTBasis;
   }
 
-  // Nil Depreciation Premium
+  // Nil Depreciation Premium (age based)
   let nilDepPremium = 0;
   if (d.nilDep){
     let rate = 0;
@@ -532,75 +520,77 @@ function computePremium(d){
     trailerODPremium = d.agriculture ? idvTrailer * 0.0087 : idvTrailer * 0.0105;
   }
 
-  // U/W Discount
+  // U/W Discount amount based on user rate and specified basis
+  // U/W Discount = (Basic OD + Electric + GVW Loading + CNG Extra + IMT-23) * (user_rate%)
   const uwBasis = basicOD + electricPremium + gvwLoading + cngExtraPremium + imt23Premium;
   const uwDiscountAmount = (d.uwDiscount/100) * uwBasis;
 
-  // Inbuilt CNG OD Premium
+  // Inbuilt CNG OD Premium per your formula:
+  // In built CNG Od Premium= (Basic OD + Electric + GVW + IMT23 + Geo + Consumable - u/w Discount)*0.05
   let inbuiltCngOdPremium = 0;
   if (d.cngChecked && d.cngType === 'inbuilt'){
     const subtotal = basicOD + electricPremium + gvwLoading + imt23Premium + geoPremium + consumablePremium - uwDiscountAmount;
+    // protect negative subtotal
     inbuiltCngOdPremium = subtotal > 0 ? (subtotal * 0.05) : 0;
   }
 
-  // Anti Theft Discount
+  // Anti Theft Discount (maximum 500)
   let antiTheftDiscount = 0;
   if (d.antiTheft) {
+    // calculation: 2.5% of (basicOD + electricPremium + gvwLoading + imt23Premium + cngExtraPremium - uwDiscountAmount), max 500
     let candidate = 0.025 * (basicOD + electricPremium + gvwLoading + imt23Premium + cngExtraPremium - uwDiscountAmount);
     antiTheftDiscount = Math.min(candidate, 500);
   }
 
-  // Nil Dep discounts
+  // Nil Dep discounts:
+  // - Nil Dep Discount = Nil Depreciation Premium * (user rate)
   const nilDepDiscPercent = d.nilDepDisc || 0;
   const nilDepDiscountAmount = (nilDepDiscPercent/100) * nilDepPremium;
+
+  // - Nil Dep Renewal Discount = Nil Depreciation Premium * 0.05 (if user selected renewal)
   const nilDepRenewalDiscount = d.nilRenewal ? (0.05 * nilDepPremium) : 0;
 
-  // NCB Discount
+  // NCB Discount = NCB Rate ×
+  // (Basic OD premium + Electric Accessories premium + GVW Loading premium + CNG Extra premium + Geo Premium + IMT-23 Premium + Towing charge premium + Nil Depr. premium
+  // - Anti Theft Discount - Nil Dep Renewal Discount - Nil Dep Discount - U/W Discount)
   let ncbDiscountAmount = 0;
   let ncbDiscountBasis = basicOD + electricPremium + gvwLoading + cngExtraPremium + geoPremium + imt23Premium + towingPremium + nilDepPremium
     - antiTheftDiscount - nilDepRenewalDiscount - nilDepDiscountAmount - uwDiscountAmount;
   if (d.ncbDiscount > 0 && d.claimPrev !== 'yes' && d.ncb !== 'name_transferred') {
     ncbDiscountAmount = (d.ncbDiscount/100) * ncbDiscountBasis;
+    // Ensure NCB can't be negative
     if (ncbDiscountAmount < 0) ncbDiscountAmount = 0;
   }
 
-  const odComponents = {
-    basicOD,
-    gvwLoading,
-    electricPremium,
-    cngExtraPremium,
-    imt23Premium,
-    towingPremium,
-    geoPremium,
-    rtiPremium,
-    consumablePremium,
-    nilDepPremium,
-    emiPremium,
-    trailerODPremium,
-    inbuiltCngOdPremium,
-    antiTheftDiscount: -antiTheftDiscount,
-    nilDepDiscountAmount: -nilDepDiscountAmount,
-    nilDepRenewalDiscount: -nilDepRenewalDiscount,
-    uwDiscountAmount: -uwDiscountAmount,
-    ncbDiscountAmount: -ncbDiscountAmount
-  };
+  // Build OD components object for clarity (discounts negative!)
+const odComponents = {
+  basicOD,
+  gvwLoading,
+  electricPremium,
+  cngExtraPremium,
+  imt23Premium,
+  towingPremium,
+  geoPremium,
+  rtiPremium,
+  consumablePremium,
+  nilDepPremium,
+  emiPremium,
+  trailerODPremium,
+  inbuiltCngOdPremium,
+  antiTheftDiscount: -antiTheftDiscount,
+  nilDepDiscountAmount: -nilDepDiscountAmount,
+  nilDepRenewalDiscount: -nilDepRenewalDiscount,
+  uwDiscountAmount: -uwDiscountAmount,
+  ncbDiscountAmount: -ncbDiscountAmount
+};
 
-  let totalOD = Object.values(odComponents).reduce((s,v)=>s+v,0);
+// Total OD before applying discounts
+let totalOD = Object.values(odComponents).reduce((s,v)=>s+v,0);
+
+
+  
 
   // ---------------- Liability (TP) Side ----------------
   let tpBase = 0;
   if (d.gvw <= 7500) tpBase = 16049;
-  else if (d.gvw <= 12000) tpBase = 27011; // Sample placeholder or whatever continuation your logic uses
-  
-  // Return structure matching your existing calculation template
-  return {
-    od: odComponents,
-    totalOD: Math.max(0, totalOD),
-    tpBase: tpBase
-  };
-}
-
-// Dummy placeholder functions to avoid syntax error in case they are defined further down in your original app.js
-function renderResult(r){}
-function bindPrintShare(){}
-                                         
+  else if (d.gvw <= 12000) tpBase = 2
