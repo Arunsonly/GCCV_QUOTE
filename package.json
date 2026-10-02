@@ -1,0 +1,16 @@
+{
+  "name": "gccv-quote",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GCCV Other Than 3 Wheeler Premium Calculator",
+  "scripts": {
+    "android:sync": "cap sync android",
+    "android:open": "cap open android",
+    "android:run": "cap run android"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/cli": "^8.0.0"
+  }
+}
