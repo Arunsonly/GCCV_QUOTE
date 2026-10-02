@@ -9,7 +9,6 @@ permissions:
 
 jobs:
   generate-android:
-    if: ${{ !hashFiles('android/settings.gradle', 'android/settings.gradle.kts') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
