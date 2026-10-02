@@ -30,6 +30,16 @@ jobs:
           yes | sdkmanager --licenses >/dev/null || true
           sdkmanager "platforms;android-36"
 
+      - name: Prepare web assets
+        run: |
+          rm -rf www
+          mkdir -p www
+          cp index.html app.js styles.css www/
+
+      - name: Sync Capacitor
+        working-directory: android
+        run: ./gradlew --no-daemon tasks >/dev/null || true
+
       - name: Verify Android project
         run: |
           test -f android/gradlew
