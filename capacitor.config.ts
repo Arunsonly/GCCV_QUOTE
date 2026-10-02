@@ -3,7 +3,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.arunsonly.gccvquote',
   appName: 'GCCV Quote',
-  webDir: '.',
+  webDir: 'www',
   bundledWebRuntime: false,
   android: {
     backgroundColor: '#ffffff'
