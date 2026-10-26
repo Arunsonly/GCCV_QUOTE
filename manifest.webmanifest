@@ -11,15 +11,15 @@
   "theme_color": "#d97706",
   "icons": [
     {
-      "src": "/GCCV_QUOTE/icon.svg",
+      "src": "/GCCV_QUOTE/icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/GCCV_QUOTE/icon.svg",
+      "src": "/GCCV_QUOTE/icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]
