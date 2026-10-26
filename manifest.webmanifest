@@ -17,10 +17,10 @@
       "purpose": "any"
     },
     {
-      "src": "/GCCV_QUOTE/icon-512.png",
+      "src": "/GCCV_QUOTE/icon.svg",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ]
 }
