@@ -1,18 +1,24 @@
 {
-  "id": "./",
+  "id": "/GCCV_QUOTE/",
   "name": "GCCV Other Than 3 Wheeler - Premium Calculator",
   "short_name": "GCCV Quote",
   "description": "GCCV Other Than 3 Wheeler premium calculator",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/GCCV_QUOTE/",
+  "scope": "/GCCV_QUOTE/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#fff7ed",
   "theme_color": "#d97706",
   "icons": [
     {
-      "src": "./icon.svg",
-      "sizes": "any",
+      "src": "/GCCV_QUOTE/icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/GCCV_QUOTE/icon.svg",
+      "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
