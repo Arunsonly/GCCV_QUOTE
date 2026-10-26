@@ -1,4 +1,4 @@
-const CACHE_NAME = "gccv-quote-v3";
+const CACHE_NAME = "gccv-quote-v4";
 const APP_SHELL = [
   "./",
   "./index.html",
